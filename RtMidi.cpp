@@ -970,13 +970,14 @@ void MidiOutCore :: openPort( unsigned int portNumber, const std::string portNam
 void MidiOutCore :: closePort( void )
 {
   CoreMidiData *data = static_cast<CoreMidiData *> (apiData_);
-
   if ( data->endpoint ) {
     MIDIEndpointDispose( data->endpoint );
+    data->endpoint = 0;
   }
 
   if ( data->port ) {
     MIDIPortDispose( data->port );
+    data->port = 0;
   }
 
   connected_ = false;
@@ -986,10 +987,10 @@ void MidiOutCore :: openVirtualPort( std::string portName )
 {
   CoreMidiData *data = static_cast<CoreMidiData *> (apiData_);
 
-  if ( data->endpoint ) {
-    errorString_ = "MidiOutCore::openVirtualPort: a virtual output port already exists!";
+  if ( connected_ ) {
+    errorString_ = "MidiOutCore::openPort: a valid connection already exists!";
     error( RtMidiError::WARNING, errorString_ );
-    return;
+  return;
   }
 
   // Create a virtual MIDI output source.
@@ -1005,6 +1006,7 @@ void MidiOutCore :: openVirtualPort( std::string portName )
 
   // Save our api-specific connection information.
   data->endpoint = endpoint;
+  connected_ = true;
 }
 
 void MidiOutCore :: sendMessage( std::vector<unsigned char> *message )
